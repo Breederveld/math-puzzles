@@ -7,8 +7,8 @@ namespace MathPuzzles
 {
 	class Program
 	{
-		static void Main(string[] args)
-		{
+        static void Main(string[] args)
+        {
             //SylverCoinage game = new SylverCoinage(new[] { 9 });
             //int nextMove = game.GetBestNextMove();
             //PhilosCube game = new PhilosCube();
@@ -146,20 +146,20 @@ namespace MathPuzzles
             //};
             //// Expected: 9876
             //Console.WriteLine(string.Join(", ", game.Solve(hints)));
-            var game = new MasterMind<string>();
-            var hints = new[]
-            {
-                new MasterMind<string>.Hint(1, 0, "R", "R", "R", "R"),
-                new MasterMind<string>.Hint(1, 0, "O", "O", "O", "O"),
-                new MasterMind<string>.Hint(0, 0, "Y", "Y", "Y", "Y"),
-                new MasterMind<string>.Hint(1, 0, "G", "G", "G", "G"),
-                new MasterMind<string>.Hint(1, 0, "B", "B", "B", "B"),
-                new MasterMind<string>.Hint(2, 2, "R", "O", "G", "B"),
-                new MasterMind<string>.Hint(2, 1, "O", "Y", "B", "G"),
-                new MasterMind<string>.Hint(0, 2, "P", "B", "Y", "O"),
-            };
-            // Expected: ROBG
-            Console.WriteLine(string.Join(", ", game.Solve(hints)));
+            //var game = new MasterMind<string>();
+            //var hints = new[]
+            //{
+            //    new MasterMind<string>.Hint(1, 0, "R", "R", "R", "R"),
+            //    new MasterMind<string>.Hint(1, 0, "O", "O", "O", "O"),
+            //    new MasterMind<string>.Hint(0, 0, "Y", "Y", "Y", "Y"),
+            //    new MasterMind<string>.Hint(1, 0, "G", "G", "G", "G"),
+            //    new MasterMind<string>.Hint(1, 0, "B", "B", "B", "B"),
+            //    new MasterMind<string>.Hint(2, 2, "R", "O", "G", "B"),
+            //    new MasterMind<string>.Hint(2, 1, "O", "Y", "B", "G"),
+            //    new MasterMind<string>.Hint(0, 2, "P", "B", "Y", "O"),
+            //};
+            //// Expected: ROBG
+            //Console.WriteLine(string.Join(", ", game.Solve(hints)));
 
             //var game = new EdgePuzzle<EdgePuzzleSide>(side => side == default ? default : (EdgePuzzleSide)(((int)side + 3) % 8 + 1),
             //    new[] { EdgePuzzleSide.WhiteT, EdgePuzzleSide.OrangeT, EdgePuzzleSide.BlueF, EdgePuzzleSide.RedT },
@@ -192,11 +192,132 @@ namespace MathPuzzles
             //    new[] { HolographicEdgePuzzleSide.Corner, HolographicEdgePuzzleSide.Swirls, HolographicEdgePuzzleSide.Arrows, HolographicEdgePuzzleSide.Swirls });
             //var solutions = game.Solve().ToArray();
 
+            // Zebra puzzle: https://en.wikipedia.org/wiki/Zebra_Puzzle
+            var nextHouses = new Func<int, string[]>(i => new[] { i - 1, i + 1 }.Select(i => i.ToString()).ToArray());
+            var housesExcept = new Func<int, string[]>(i => Enumerable.Range(1, 5).Except(new[] { i }).Select(i => i.ToString()).ToArray());
+            var game = new LogicGridPuzzle(
+            new[]
+            {
+                // The Englishman lives in the red house.
+                new LogicGridPuzzle.Fact()
+                    .Add("Nationality", "Englishman")
+                    .Add("Color", "Red"),
+                // The Spaniard owns the dog.
+                new LogicGridPuzzle.Fact()
+                    .Add("Nationality", "Spaniard")
+                    .Add("Pet", "Dog"),
+                // Coffee is drunk in the green house.
+                new LogicGridPuzzle.Fact()
+                    .Add("Drink", "Coffee")
+                    .Add("Color", "Green"),
+                // The Ukrainian drinks tea.
+                new LogicGridPuzzle.Fact()
+                    .Add("Nationality", "Ukrainian")
+                    .Add("Drink", "Tea"),
+                // The green house is immediately to the right of the ivory house.
+                new LogicGridPuzzle.Fact()
+                    .Add("Color", "Green")
+                    .Add("House", context =>
+                    {
+                        var options = context.Filter("Color", "Ivory").GetOptions("House");
+                        return options.Select(s => new string(new[] { (char)(s[0] + 1) })).ToArray();
+                    }),
+                new LogicGridPuzzle.Fact()
+                    .Add("Color", "Ivory")
+                    .Add("House", context =>
+                    {
+                        var options = context.Filter("Color", "Green").GetOptions("House");
+                        return options.Select(s => new string(new[] { (char)(s[0] - 1) })).ToArray();
+                    }),
+                // The Old Gold smoker owns snails.
+                new LogicGridPuzzle.Fact()
+                    .Add("Smoke", "Old Gold")
+                    .Add("Pet", "Snails"),
+                // Kools are smoked in the yellow house.
+                new LogicGridPuzzle.Fact()
+                    .Add("Smoke", "Kools")
+                    .Add("Color", "Yellow"),
+                // Milk is drunk in the middle house.
+                new LogicGridPuzzle.Fact()
+                    .Add("Drink", "Milk")
+                    .Add("House", "3"),
+                // The Norwegian lives in the first house.
+                new LogicGridPuzzle.Fact()
+                    .Add("Nationality", "Norwegian")
+                    .Add("House", "1"),
+                // The man who smokes Chesterfields lives in the house next to the man with the fox.
+                new LogicGridPuzzle.Fact()
+                    .Add("Smoke", "Chesterfields")
+                    .Add("House", context =>
+                    {
+                        var options = context.Filter("Pet", "Fox").GetOptions("House");
+                        return options.SelectMany(s => new[] { new string(new[] { (char)(s[0] - 1) }), new string(new[] { (char)(s[0] + 1) }) }).ToArray();
+                    }),
+                new LogicGridPuzzle.Fact()
+                    .Add("Pet", "Fox")
+                    .Add("House", context =>
+                    {
+                        var options = context.Filter("Smoke", "Chesterfields").GetOptions("House");
+                        return options.SelectMany(s => new[] { new string(new[] { (char)(s[0] - 1) }), new string(new[] { (char)(s[0] + 1) }) }).ToArray();
+                    }),
+                // Kools are smoked in the house next to the house where the horse is kept.
+                new LogicGridPuzzle.Fact()
+                    .Add("Smoke", "Kools")
+                    .Add("House", context =>
+                    {
+                        var options = context.Filter("Pet", "Horse").GetOptions("House");
+                        return options.SelectMany(s => new[] { new string(new[] { (char)(s[0] - 1) }), new string(new[] { (char)(s[0] + 1) }) }).ToArray();
+                    }),
+                new LogicGridPuzzle.Fact()
+                    .Add("Pet", "Horse")
+                    .Add("House", context =>
+                    {
+                        var options = context.Filter("Smoke", "Kools").GetOptions("House");
+                        return options.SelectMany(s => new[] { new string(new[] { (char)(s[0] - 1) }), new string(new[] { (char)(s[0] + 1) }) }).ToArray();
+                    }),
+                // The Lucky Strike smoker drinks orange juice.
+                new LogicGridPuzzle.Fact()
+                    .Add("Smoke", "Lucky Strike")
+                    .Add("Drink", "Orange Juice"),
+                // The Japanese smokes Parliaments.
+                new LogicGridPuzzle.Fact()
+                    .Add("Nationality", "Japanese")
+                    .Add("Smoke", "Parliament"),
+                // The Norwegian lives next to the blue house.
+                new LogicGridPuzzle.Fact()
+                    .Add("Nationality", "Norwegian")
+                    .Add("House", context =>
+                    {
+                        var options = context.Filter("Color", "Blue").GetOptions("House");
+                        return options.SelectMany(s => new[] { new string(new[] { (char)(s[0] - 1) }), new string(new[] { (char)(s[0] + 1) }) }).ToArray();
+                    }),
+                new LogicGridPuzzle.Fact()
+                    .Add("Color", "Blue")
+                    .Add("House", context =>
+                    {
+                        var options = context.Filter("Nationality", "Norwegian").GetOptions("House");
+                        return options.SelectMany(s => new[] { new string(new[] { (char)(s[0] - 1) }), new string(new[] { (char)(s[0] + 1) }) }).ToArray();
+                    }),
+            }
+            , new Dictionary<string, string[]>
+            {
+                ["House"] = new[] { "1", "2", "3", "4", "5" },
+                ["Color"] = new[] { "Yellow", "Blue", "Red", "Ivory", "Green" },
+                ["Nationality"] = new[] { "Norwegian", "Ukrainian", "Englishman", "Spaniard", "Japanese" },
+                ["Drink"] = new[] { "Water", "Tea", "Milk", "Orange Juice", "Coffee" },
+                ["Smoke"] = new[] { "Kools", "Chesterfields", "Old Gold", "Lucky Strike", "Parliament" },
+                ["Pet"] = new[] { "Fox", "Horse", "Snails", "Dog", "Zebra" },
+            }
+            );
+            var state = game.Solve();
+            state.Print("House");
+            state.PrintFull();
+
             Console.WriteLine("done");
 
-			Debugger.Break();
-			//Console.ReadKey();
-		}
+            Debugger.Break();
+            //Console.ReadKey();
+        }
 
         public enum EdgePuzzleSide
         {
