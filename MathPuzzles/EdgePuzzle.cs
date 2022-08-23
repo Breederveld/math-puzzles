@@ -125,5 +125,48 @@ namespace MathPuzzles
             public int Number { get; set; }
             public TSide[] Sides { get; set; }
         }
+
+        public void PrintGrid(Piece[] grid)
+        {
+            Action<TSide> printFixed = (side) =>
+            {
+                var str = side.ToString();
+                if (str.Length > 20)
+                    Console.Write(str.Substring(0, 20));
+                else
+                    Console.Write(str.PadRight(20));
+            };
+
+            for (var y = 0; y < grid.Length / _width; y++)
+            {
+                for (var layer = 0; layer < 3; layer++)
+                {
+                    for (var x = 0; x < _width; x++)
+                    {
+                        var idx = y * _width + x;
+                        switch (layer)
+                        {
+                            case 0:
+                                Console.Write("           ");
+                                printFixed(grid[idx].Sides[0]);
+                                Console.Write("           ");
+                                break;
+                            case 1:
+                                printFixed(grid[idx].Sides[3]);
+                                Console.Write(" ");
+                                printFixed(grid[idx].Sides[1]);
+                                Console.Write(" ");
+                                break;
+                            case 2:
+                                Console.Write("           ");
+                                printFixed(grid[idx].Sides[2]);
+                                Console.Write("           ");
+                                break;
+                        }
+                    }
+                    Console.WriteLine();
+                }
+            }
+        }
     }
 }
